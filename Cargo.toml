@@ -2,8 +2,11 @@
 name = "payment_engine"
 version = "0.1.0"
 authors = ["thsioutas <thsioutas@gmail.com>"]
-edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+edition = "2021"
 
 [dependencies]
+csv = "1.1"
+log = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+simplelog = "0.12"
+structopt = { version = "0.2", default-features = false }
