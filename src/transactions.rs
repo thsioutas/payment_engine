@@ -65,7 +65,7 @@ pub struct ChargeBackInfo {
 }
 
 impl TryFrom<CsvTransaction> for Transaction {
-    type Error = CsvError;
+    type Error = TransactionError;
     fn try_from(csv_transaction: CsvTransaction) -> Result<Self, Self::Error> {
         use TransactionType::*;
         match csv_transaction.transaction_type {
@@ -77,7 +77,7 @@ impl TryFrom<CsvTransaction> for Transaction {
                         amount,
                     }))
                 } else {
-                    Err(CsvError::WrongFormat)
+                    Err(TransactionError::WrongFormat)
                 }
             }
             Withdrawal => {
@@ -88,7 +88,7 @@ impl TryFrom<CsvTransaction> for Transaction {
                         amount,
                     }))
                 } else {
-                    Err(CsvError::WrongFormat)
+                    Err(TransactionError::WrongFormat)
                 }
             }
             Dispute => {
@@ -119,19 +119,20 @@ impl TryFrom<CsvTransaction> for Transaction {
 /// Read transactions from input reader
 pub fn read_transactions(
     reader: impl std::io::Read,
-) -> impl Iterator<Item = Result<Transaction, CsvError>> {
+) -> impl Iterator<Item = Result<Transaction, TransactionError>> {
     let reader = csv::ReaderBuilder::new()
         .trim(csv::Trim::All)
         .from_reader(reader);
     let csv_transactions = reader.into_deserialize::<CsvTransaction>();
     csv_transactions.map(|csv_transaction_result| {
         csv_transaction_result
-            .map_err(|_| CsvError::DeserializeError)
+            .map_err(|_| TransactionError::CsvDeserializeError)
             .and_then(|csv_transaction| csv_transaction.try_into())
     })
 }
 
-pub enum CsvError {
-    DeserializeError,
+#[derive(Debug)]
+pub enum TransactionError {
+    CsvDeserializeError,
     WrongFormat,
 }

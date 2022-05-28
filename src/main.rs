@@ -1,5 +1,5 @@
 use log::info;
-use payment_engine::accounts::Accounts;
+use payment_engine::engine::PaymentEngine;
 use payment_engine::transactions::read_transactions;
 use std::fs::File;
 use std::path::PathBuf;
@@ -22,17 +22,8 @@ fn main() {
     );
     info!("Start toy payment engine!");
     let args = Opt::from_args();
-
-    let mut accounts = Accounts::new();
     let input_file = File::open(args.input_file_path).expect("Unable to open input file");
     let transactions = read_transactions(input_file);
-    for transaction_result in transactions {
-        if let Ok(transaction) = transaction_result {
-            log::debug!("{:?}", transaction);
-            accounts.update(transaction);
-        } else {
-            log::error!("Failed to deserialize transaction");
-        }
-    }
-    accounts.output();
+    let payment_engine = PaymentEngine::run(transactions);
+    payment_engine.output_to_csv_format(std::io::stdout());
 }

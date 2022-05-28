@@ -1,6 +1,6 @@
-21:46:32 [INFO] Start toy payment engine!
-21:46:32 [DEBUG] (1) payment_engine: Deposit(DepositInfo { client: 2, tx: 1, amount: 1.0 })
-21:46:32 [DEBUG] (1) payment_engine: Deposit(DepositInfo { client: 1, tx: 3, amount: 2.0 })
-21:46:32 [DEBUG] (1) payment_engine: Withdrawal(WithdrawalInfo { client: 2, tx: 2, amount: 2.0 })
-21:46:32 [DEBUG] (1) payment_engine: Withdrawal(WithdrawalInfo { client: 1, tx: 4, amount: 1.5 })
-21:46:32 [DEBUG] (1) payment_engine: Withdrawal(WithdrawalInfo { client: 2, tx: 5, amount: 3.0 })
+09:05:02 [INFO] Start toy payment engine!
+09:05:02 [DEBUG] (1) payment_engine: Deposit(DepositInfo { client: 2, tx: 1, amount: 1.0 })
+09:05:02 [DEBUG] (1) payment_engine: Deposit(DepositInfo { client: 1, tx: 3, amount: 2.0 })
+09:05:02 [DEBUG] (1) payment_engine: Withdrawal(WithdrawalInfo { client: 2, tx: 2, amount: 2.0 })
+09:05:02 [DEBUG] (1) payment_engine: Withdrawal(WithdrawalInfo { client: 1, tx: 4, amount: 1.5 })
+09:05:02 [DEBUG] (1) payment_engine: Withdrawal(WithdrawalInfo { client: 2, tx: 5, amount: 3.0 })
