@@ -111,6 +111,7 @@ impl ClientInfoStorage {
                     if client_info.0.locked {
                         log::warn!("Client's account  ({}) is locked", info.client);
                     } else {
+                        // Insert a new deposit to the deposit history of the specific client
                         client_info.1.insert(
                             info.tx,
                             DepositLog {
@@ -118,6 +119,7 @@ impl ClientInfoStorage {
                                 disputed: false,
                             },
                         );
+                        // Deposit the amount to the account
                         client_info.0.deposit(info.amount);
                     }
                 } else {
@@ -129,6 +131,8 @@ impl ClientInfoStorage {
                             disputed: false,
                         },
                     );
+                    // Introduce a new client with an account which includes this first deposit
+                    // and insert the deposit to the client's deposit history
                     self.client_info.insert(
                         info.client,
                         (Account::default().deposit(info.amount), new_entry),
@@ -140,6 +144,7 @@ impl ClientInfoStorage {
                     if client_info.0.locked {
                         log::warn!("Client's account  ({}) is locked", info.client);
                     } else {
+                        // Withdraw the amount form the client's account
                         client_info.0.withdraw(info.amount);
                     }
                 } else {
@@ -152,17 +157,18 @@ impl ClientInfoStorage {
                         log::warn!("Client's account  ({}) is locked", info.client);
                     } else if let Some(deposit) = client_info.1.get_mut(&info.tx) {
                         if !deposit.disputed {
-                            let amount = deposit.amount;
+                            // Set the specific deposit as disputed
                             deposit.disputed = true;
-                            client_info.0.dispute(amount);
+                            // Dispute the specific amount from the client's account
+                            client_info.0.dispute(deposit.amount);
                         } else {
                             log::error!("Dispute error: deposit already disputed")
                         }
                     } else {
-                        log::error!("Not available deposit to be disputed");
+                        log::error!("Dispute error: Not available deposit to be disputed");
                     }
                 } else {
-                    log::error!("Not available client for resolved transaction");
+                    log::error!("Dispute error: Not available client for resolved transaction");
                 }
             }
             Resolve(info) => {
@@ -173,9 +179,10 @@ impl ClientInfoStorage {
                         if !deposit.disputed {
                             log::error!("Resolve error: Deposit has not been disputed");
                         } else {
-                            let amount = deposit.amount;
+                            // Set the specific deposit as not-disputed
                             deposit.disputed = false;
-                            client_info.0.resolve(amount);
+                            // Resolve the specific amount from the client's account
+                            client_info.0.resolve(deposit.amount);
                         }
                     } else {
                         log::error!("Resolve error: Not available disputed deposit to be resolved");
@@ -192,13 +199,14 @@ impl ClientInfoStorage {
                         if !deposit.disputed {
                             log::error!("ChargeBack error: Deposit has not been disputed");
                         } else {
-                            let amount = deposit.amount;
+                            // Set the specific deposit as not-disputed (maybe this is not even needed)
                             deposit.disputed = false;
-                            client_info.0.charge_back(amount);
+                            // Charge back the specific amount from the client's account
+                            client_info.0.charge_back(deposit.amount);
                         }
                     } else {
                         log::error!(
-                            "ChargeBack error: Not available disputed deposit to be resolved"
+                            "ChargeBack error: Not available disputed deposit to be charge back"
                         );
                     }
                 } else {
@@ -210,7 +218,7 @@ impl ClientInfoStorage {
         }
     }
 
-    /// Outputs the stored accounts to a CSV format
+    /// Returns the stored accounts in a CSV format
     pub fn get_csv_format_accounts(&self) -> Vec<CsvAccount> {
         let records = self
             .client_info
@@ -340,8 +348,34 @@ mod tests {
         };
         assert_eq!(records[0], expected_records);
 
+        // Resolve un-registered transaction
+        let transaction = Transaction::Resolve(ResolveInfo { client: 2, tx: 4 });
+        client_storage.update(transaction);
+        let records = client_storage.get_csv_format_accounts();
+        let expected_records = CsvAccount {
+            client: 2,
+            available: 2.2345,
+            held: 0.0,
+            total: 2.2345,
+            locked: false,
+        };
+        assert_eq!(records[0], expected_records);
+
         // Charge back un-disputed (tx = 2)
         let transaction = Transaction::ChargeBack(ChargeBackInfo { client: 2, tx: 2 });
+        client_storage.update(transaction);
+        let records = client_storage.get_csv_format_accounts();
+        let expected_records = CsvAccount {
+            client: 2,
+            available: 2.2345,
+            held: 0.0,
+            total: 2.2345,
+            locked: false,
+        };
+        assert_eq!(records[0], expected_records);
+
+        // Charge back un register transaction (tx = 4)
+        let transaction = Transaction::ChargeBack(ChargeBackInfo { client: 2, tx: 4 });
         client_storage.update(transaction);
         let records = client_storage.get_csv_format_accounts();
         let expected_records = CsvAccount {
@@ -524,7 +558,7 @@ mod tests {
 
     #[test]
     fn test_client_info_flow() {
-        let mut client_storage = ClientInfoStorage::new();
+        let mut client_storage = ClientInfoStorage::default();
         let transactions = vec![
             Transaction::Deposit(DepositInfo {
                 client: 2,

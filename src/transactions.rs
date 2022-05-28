@@ -120,10 +120,12 @@ impl TryFrom<CsvTransaction> for Transaction {
 pub fn read_transactions(
     reader: impl std::io::Read,
 ) -> impl Iterator<Item = Result<Transaction, TransactionError>> {
+    // Try to read deserialized transactions from input reader
     let reader = csv::ReaderBuilder::new()
         .trim(csv::Trim::All)
         .from_reader(reader);
     let csv_transactions = reader.into_deserialize::<CsvTransaction>();
+    // Map CSV transaction structs to a more flexible type
     csv_transactions.map(|csv_transaction_result| {
         csv_transaction_result
             .map_err(|_| TransactionError::CsvDeserializeError)

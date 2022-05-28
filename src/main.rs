@@ -22,8 +22,13 @@ fn main() {
     );
     info!("Start toy payment engine!");
     let args = Opt::from_args();
+
     let input_file = File::open(args.input_file_path).expect("Unable to open input file");
+
+    // Read transactions from CSV
     let transactions = read_transactions(input_file);
+    // Run payment engine for the given transactions
     let payment_engine = PaymentEngine::run(transactions);
+    // Output the payment engine's results in a CSV format to stdout
     payment_engine.output_to_csv_format(std::io::stdout());
 }

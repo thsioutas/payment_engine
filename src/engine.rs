@@ -9,11 +9,13 @@ pub struct PaymentEngine {
 impl PaymentEngine {
     /// Runs the Payment Engine
     pub fn run(transactions: impl Iterator<Item = Result<Transaction, TransactionError>>) -> Self {
+        // Create a new ClientStorage
         let mut client_storage = ClientInfoStorage::new();
         for transaction_result in transactions {
             match transaction_result {
                 Ok(transaction) => {
                     log::debug!("{:?}", transaction);
+                    // Update ClientStorage based on new transaction
                     client_storage.update(transaction);
                 }
                 Err(error) => {
